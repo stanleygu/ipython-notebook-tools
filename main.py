@@ -86,4 +86,14 @@ class NotebookFinder(object):
             self.loaders[key] = NotebookLoader(path)
         return self.loaders[key]
     
-sys.meta_path.append(NotebookFinder())
+def loadNotebooksAsModules():
+	sys.meta_path.append(NotebookFinder())
+
+def sideBySideOutput():
+	print '''
+For side-by-side output, add this to a new cell:
+
+%%html
+<style>div.cell{box-orient:horizontal;flex-direction:row;}div.cell *{width:100%;}div.prompt{width:80px;}</style>
+'''
+
