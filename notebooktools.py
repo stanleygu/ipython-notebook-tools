@@ -146,6 +146,36 @@ def makeParameterSliders(r,
                          minFactor=0,
                          maxFactor=2,
                          sliderStepFactor=10):
+    """
+    Create interactive sliders to change model parameters.
+
+    r - roadrunner instance with model loaded
+    paramIds (optional) - list of parameter ids to create sliders,
+                          by default creates slider for every parameter
+    minFactor (optional) - scale factor multiplied with parameter value,
+                           to determine minimum value of slider
+    maxFactor (optional) - scale factor multiplied with parameter value,
+                           to determine maximum value of slider
+    sliderStepFactor (optional) - scale factor divided with parameter value,
+                                  to determine step size of slider
+
+    Example Usage:
+
+    import tellurium as te
+    import notebooktools as nb
+    model = '''
+      model pathway()
+        S1 -> S2; k1*S1 - k2*S2 # Reversible term added here
+
+        # Initialize values
+        S1 = 5; S2 = 0;
+        k1 = 0.1;  k2 = 0.05;
+
+      end
+    '''
+    r = te.loadAntimonyModel(model)
+    nb.makeParameterSliders(r, paramIds=['k1'])
+    """
     from IPython.html.widgets import interact
     from IPython.html import widgets
     import tellurium as te
