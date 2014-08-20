@@ -9,5 +9,6 @@ setup(name='notebooktools',
       description='Tools for IPython Notebook used with Tellurium',
       author='Stanley Gu',
       author_email='stanleygu@gmail.com',
-      url='https://github.com/stanleygu/ipython-notebook-modules'
+      url='https://github.com/stanleygu/ipython-notebook-modules',
+      packages=['']
       )
