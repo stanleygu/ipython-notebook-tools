@@ -135,7 +135,61 @@ def plot2DParameterScan(
                     linewidth=2,
                     label=legendItems[c])
 
-            if (i is 2):
+            if (i == len(param1Range) - 1):
                 axarr[i, j].set_xlabel('%s = %.2f' % (param2, k2))
             if (j is 0):
                 axarr[i, j].set_ylabel('%s = %.2f' % (param1, k1))
+
+
+def makeParameterSliders(r,
+                         paramIds=None,
+                         minFactor=0,
+                         maxFactor=2,
+                         sliderStepFactor=10):
+    from IPython.html.widgets import interact
+    from IPython.html import widgets
+    import tellurium as te
+    import sys
+
+    if paramIds is None:
+        paramIds = r.model.getGlobalParameterIds()
+    paramMap = {}
+
+    def runSim(start=0, stop=100, steps=100, **paramMap):
+        r.reset()
+        for k, v in paramMap.items():
+            try:
+                key = k.encode('ascii', 'ignore')
+                r.model[key] = v
+            except:
+                # error in setting model variable
+                e = sys.exc_info()
+                print e
+
+        try:
+            s = r.simulate(start, stop, steps)
+            te.plotArray(s)
+        except:
+            # error in simulation
+            e = sys.exc_info()
+            print e
+
+    for i, id in enumerate(paramIds):
+        val = r.model[id]
+        try:
+            r.model[id] = val
+            paramMap[id] = widgets.FloatSliderWidget(
+                min=minFactor*val,
+                max=maxFactor*val,
+                step=val/sliderStepFactor,
+                value=val)
+        except:
+            e = sys.exc_info()
+            print e
+
+    interact(runSim,
+             start=widgets.FloatTextWidget(min=0, value=0),
+             stop=widgets.FloatTextWidget(min=0, value=100),
+             steps=widgets.IntTextWidget(min=0, value=100),
+             **paramMap
+             )
