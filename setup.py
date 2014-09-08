@@ -2,7 +2,7 @@
 
 from distutils.core import setup
 
-version = '0.0.6'
+version = '0.0.7'
 
 setup(name='notebooktools',
       version=version,
@@ -10,5 +10,5 @@ setup(name='notebooktools',
       author='Stanley Gu',
       author_email='stanleygu@gmail.com',
       url='https://github.com/stanleygu/ipython-notebook-modules',
-      packages=['notebooktools']
+      packages=['notebooktools', 'diffevolution']
       )
