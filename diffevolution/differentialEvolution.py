@@ -42,31 +42,41 @@ class DiffEvolution():
             'members': [],
             'fitness': []
         }
-        asyncSims = []
-        for i in range(POPULATION):
-            newMember = self.createRandomMember()
-            firstGen['members'].append(newMember)
 
-            if self.ASYNC:
-                sim = self.simFcn(self.rr, newMember.params)
-                asyncSims.append(sim)
-            else:
-                try:
-                    newFitness = self.fitnessFcn(
-                        self.simFcn(self.rr, newMember.params))
-                except RuntimeError:
-                    newFitness = float('inf')
-                firstGen['fitness'].append(newFitness)
         if self.ASYNC:
-            for output in asyncSims:
-                try:
-                    firstGen['fitness'].append(
-                        self.fitnessFcn(output.get()[-1]))
-                except RuntimeError:
-                    firstGen['fitness'].append(float('inf'))
+            self.asyncSeedPopulation(firstGen)
+        else:
+            self.seedPopulation(firstGen)
 
         self.generations.append(firstGen)
         self.BEST_FITNESS = max(firstGen['fitness'])
+
+    def asyncSeedPopulation(self, firstGen):
+        asyncSims = []
+        for i in range(self.POPULATION):
+            newMember = self.createRandomMember()
+            firstGen['members'].append(newMember)
+
+            sim = self.simFcn(self.rr, newMember.params)
+            asyncSims.append(sim)
+        for output in asyncSims:
+            try:
+                firstGen['fitness'].append(
+                    self.fitnessFcn(output.get()[-1]))
+            except RuntimeError:
+                firstGen['fitness'].append(float('inf'))
+
+    def seedPopulation(self, firstGen):
+        for i in range(self.POPULATION):
+            newMember = self.createRandomMember()
+            firstGen['members'].append(newMember)
+
+            try:
+                newFitness = self.fitnessFcn(
+                    self.simFcn(self.rr, newMember.params))
+            except RuntimeError:
+                newFitness = float('inf')
+            firstGen['fitness'].append(newFitness)
 
     def start(self):
         import time
@@ -83,13 +93,24 @@ class DiffEvolution():
         print 'Best parameters of %s' % self.getBestMember().params
 
     def newGeneration(self):
-        import numpy as np
         gen = {}
-        numParams = len(self.paramRange)
 
         newMembers = []
         newFitnesses = []
 
+        if self.ASYNC:
+            self.asyncGetMembersAndFitnesses(newMembers, newFitnesses)
+        else:
+            self.getMembersAndFitnesses(newMembers, newFitnesses)
+
+        gen['members'] = newMembers
+        gen['fitness'] = newFitnesses
+
+        return gen
+
+    def asyncGetMembersAndFitnesses(self, newMembers, newFitnesses):
+        import numpy as np
+        numParams = len(self.paramRange)
         asyncSims = []
         asyncTrialMembers = []
         for i, member in enumerate(self.generations[-1]['members']):
@@ -114,54 +135,73 @@ class DiffEvolution():
                     trialP.append(originalP)
             trialMember = Member(trialP)
 
-            if self.ASYNC:
-                # In the async case, create list of trial members and
-                # async sim jobs to feed into fitness function
-                sim = self.simFcn(self.rr, trialMember.params)
-                asyncTrialMembers.append(trialMember)
-                asyncSims.append(sim)
+            # In the async case, create list of trial members and
+            # async sim jobs to feed into fitness function
+            sim = self.simFcn(self.rr, trialMember.params)
+            asyncTrialMembers.append(trialMember)
+            asyncSims.append(sim)
+
+        # Async operation so still need to make members
+        for i, (
+                sim, trialMember
+                ) in enumerate(zip(asyncSims, asyncTrialMembers)):
+            try:
+                trialFitness = self.fitnessFcn(sim.get()[-1])
+            except RuntimeError:
+                trialFitness = float('inf')
+            member = self.generations[-1]['members'][i]
+            memberFitness = self.generations[-1]['fitness'][i]
+            if (trialFitness < memberFitness):
+                newMembers.append(trialMember)
+                newFitnesses.append(trialFitness)
+                self.updateBestFitness(trialFitness)
             else:
-                # Fitness function should know how to handle trialmember
-                # and run simulation
-                try:
-                    trialFitness = self.fitnessFcn(
-                        self.simFcn(self.rr, trialMember.params))
-                except RuntimeError:
-                    trialFitness = float('inf')
-                memberFitness = self.generations[-1]['fitness'][i]
-                # Replace member with trial member if better fitness
-                if (trialFitness < memberFitness):
-                    newMembers.append(trialMember)
-                    newFitnesses.append(trialFitness)
-                    self.updateBestFitness(trialFitness)
-                else:
-                    newMembers.append(member)
-                    newFitnesses.append(memberFitness)
-                    self.updateBestFitness(memberFitness)
-        if self.ASYNC:
-            # Async operation so still need to make members
-            for i, (
-                    sim, trialMember
-                    ) in enumerate(zip(asyncSims, asyncTrialMembers)):
-                try:
-                    trialFitness = self.fitnessFcn(sim.get()[-1])
-                except RuntimeError:
-                    trialFitness = float('inf')
-                member = self.generations[-1]['members'][i]
-                memberFitness = self.generations[-1]['fitness'][i]
-                if (trialFitness < memberFitness):
-                    newMembers.append(trialMember)
-                    newFitnesses.append(trialFitness)
-                    self.updateBestFitness(trialFitness)
-                else:
-                    newMembers.append(member)
-                    newFitnesses.append(memberFitness)
-                    self.updateBestFitness(memberFitness)
+                newMembers.append(member)
+                newFitnesses.append(memberFitness)
+                self.updateBestFitness(memberFitness)
 
-        gen['members'] = newMembers
-        gen['fitness'] = newFitnesses
+    def getMembersAndFitnesses(self, newMembers, newFitnesses):
+        import numpy as np
+        numParams = len(self.paramRange)
+        for i, member in enumerate(self.generations[-1]['members']):
+            # Pick two other members
+            a = self.generations[-1]['members'][
+                np.random.randint(0, self.POPULATION)]
+            b = self.generations[-1]['members'][
+                np.random.randint(0, self.POPULATION)]
+            # Create mutant
+            mutant = self.mutate(member, a, b)
+            # Crossover to create trial member
+            trialP = []
+            pInd = np.random.randint(
+                0, numParams)  # random index of parameter to cross over
+            for j, (
+                    mutantP, originalP
+                    ) in enumerate(zip(mutant.params, member.params)):
+                r = np.random.uniform(0, 1)
+                if r < self.CROSSOVER_RATE or j == pInd:
+                    trialP.append(mutantP)
+                else:
+                    trialP.append(originalP)
+            trialMember = Member(trialP)
 
-        return gen
+            # Fitness function should know how to handle trialmember
+            # and run simulation
+            try:
+                trialFitness = self.fitnessFcn(
+                    self.simFcn(self.rr, trialMember.params))
+            except RuntimeError:
+                trialFitness = float('inf')
+            memberFitness = self.generations[-1]['fitness'][i]
+            # Replace member with trial member if better fitness
+            if (trialFitness < memberFitness):
+                newMembers.append(trialMember)
+                newFitnesses.append(trialFitness)
+                self.updateBestFitness(trialFitness)
+            else:
+                newMembers.append(member)
+                newFitnesses.append(memberFitness)
+                self.updateBestFitness(memberFitness)
 
     def updateBestFitness(self, newFitness):
         if (newFitness < self.BEST_FITNESS):
