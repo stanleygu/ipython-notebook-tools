@@ -7,7 +7,8 @@ class DiffEvolution():
                  MIXING_RATE=0.8,
                  NON_NEGATIVE=True,
                  paramRangeDict=None,
-                 POPULATION=500
+                 POPULATION=500,
+                 SAVE_RESULTS=False
                  ):
         self.rr = rr
         self.paramRange = []
@@ -22,6 +23,7 @@ class DiffEvolution():
         self.POPULATION = POPULATION
         self.MAX_GENS = MAX_GENS
         self.FITNESS_THRESHOLD = FITNESS_THRESHOLD
+        self.SAVE_RESULTS = SAVE_RESULTS
 
         defaultMin = 0
         defaultMax = 10
@@ -40,7 +42,8 @@ class DiffEvolution():
 
         firstGen = {
             'members': [],
-            'fitness': []
+            'fitness': [],
+            'sim': []
         }
 
         if self.ASYNC:
@@ -61,21 +64,30 @@ class DiffEvolution():
             asyncSims.append(sim)
         for output in asyncSims:
             try:
+                sim = output.get()[-1]
                 firstGen['fitness'].append(
-                    self.fitnessFcn(output.get()[-1]))
+                    self.fitnessFcn(sim))
+                if self.SAVE_RESULTS:
+                    firstGen['sim'].append(sim)
             except RuntimeError:
                 firstGen['fitness'].append(float('inf'))
+                if self.SAVE_RESULTS:
+                    firstGen['sim'].append(None)
 
     def seedPopulation(self, firstGen):
+        import numpy as np
         for i in range(self.POPULATION):
             newMember = self.createRandomMember()
             firstGen['members'].append(newMember)
 
             try:
-                newFitness = self.fitnessFcn(
-                    self.simFcn(self.rr, newMember.params))
+                sim = np.copy(self.simFcn(self.rr, newMember.params))
+                newFitness = self.fitnessFcn(sim)
             except RuntimeError:
+                sim = None
                 newFitness = float('inf')
+            if self.SAVE_RESULTS:
+                firstGen['sim'].append(sim)
             firstGen['fitness'].append(newFitness)
 
     def start(self):
@@ -97,18 +109,20 @@ class DiffEvolution():
 
         newMembers = []
         newFitnesses = []
+        newSims = []
 
         if self.ASYNC:
-            self.asyncGetMembersAndFitnesses(newMembers, newFitnesses)
+            self.asyncGetMembersAndFitnesses(newMembers, newFitnesses, newSims)
         else:
-            self.getMembersAndFitnesses(newMembers, newFitnesses)
+            self.getMembersAndFitnesses(newMembers, newFitnesses, newSims)
 
         gen['members'] = newMembers
         gen['fitness'] = newFitnesses
+        gen['sim'] = newSims
 
         return gen
 
-    def asyncGetMembersAndFitnesses(self, newMembers, newFitnesses):
+    def asyncGetMembersAndFitnesses(self, newMembers, newFitnesses, newSims):
         import numpy as np
         numParams = len(self.paramRange)
         asyncSims = []
@@ -142,25 +156,32 @@ class DiffEvolution():
             asyncSims.append(sim)
 
         # Async operation so still need to make members
-        for i, (
-                sim, trialMember
+        for i, (simResult,
+                trialMember
                 ) in enumerate(zip(asyncSims, asyncTrialMembers)):
             try:
-                trialFitness = self.fitnessFcn(sim.get()[-1])
+                sim = np.copy(simResult.get()[-1])
+                trialFitness = self.fitnessFcn(sim)
             except RuntimeError:
+                sim = None
                 trialFitness = float('inf')
             member = self.generations[-1]['members'][i]
             memberFitness = self.generations[-1]['fitness'][i]
+            memberSim = self.generations[-1]['sim'][i]
             if (trialFitness < memberFitness):
                 newMembers.append(trialMember)
                 newFitnesses.append(trialFitness)
                 self.updateBestFitness(trialFitness)
+                if self.SAVE_RESULTS:
+                    newSims.append(sim)
             else:
                 newMembers.append(member)
                 newFitnesses.append(memberFitness)
                 self.updateBestFitness(memberFitness)
+                if self.SAVE_RESULTS:
+                    newSims.append(memberSim)
 
-    def getMembersAndFitnesses(self, newMembers, newFitnesses):
+    def getMembersAndFitnesses(self, newMembers, newFitnesses, newSims):
         import numpy as np
         numParams = len(self.paramRange)
         for i, member in enumerate(self.generations[-1]['members']):
@@ -188,20 +209,26 @@ class DiffEvolution():
             # Fitness function should know how to handle trialmember
             # and run simulation
             try:
-                trialFitness = self.fitnessFcn(
-                    self.simFcn(self.rr, trialMember.params))
+                sim = np.copy(self.simFcn(self.rr, trialMember.params))
+                trialFitness = self.fitnessFcn(sim)
             except RuntimeError:
+                sim = None
                 trialFitness = float('inf')
             memberFitness = self.generations[-1]['fitness'][i]
+            memberSim = self.generations[-1]['sim'][i]
             # Replace member with trial member if better fitness
             if (trialFitness < memberFitness):
                 newMembers.append(trialMember)
                 newFitnesses.append(trialFitness)
                 self.updateBestFitness(trialFitness)
+                if self.SAVE_RESULTS:
+                    newSims.append(sim)
             else:
                 newMembers.append(member)
                 newFitnesses.append(memberFitness)
                 self.updateBestFitness(memberFitness)
+                if self.SAVE_RESULTS:
+                    newSims.append(memberSim)
 
     def updateBestFitness(self, newFitness):
         if (newFitness < self.BEST_FITNESS):
@@ -247,10 +274,13 @@ class DiffEvolution():
         import matplotlib.pyplot as plt
         ind = self.generations[-1]['fitness'].index(self.BEST_FITNESS)
         params = self.generations[-1]['members'][ind].params
-        if self.ASYNC:
-            sim = self.simFcn(self.rr, params).get()[-1]
+        if self.SAVE_RESULTS:
+            sim = self.generations[-1]['sim'][ind]
         else:
-            sim = self.simFcn(self.rr, params)
+            if self.ASYNC:
+                sim = self.simFcn(self.rr, params).get()[-1]
+            else:
+                sim = self.simFcn(self.rr, params)
         plts = plt.plot(sim[:, 0], sim[:, 1:], linewidth=2.5)
         if observed is not None:
             for i, column in enumerate(observed[:, 1:].T):
