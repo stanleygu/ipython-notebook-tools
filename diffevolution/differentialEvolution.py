@@ -8,7 +8,7 @@ class DiffEvolution():
                  NON_NEGATIVE=True,
                  paramRangeDict=None,
                  POPULATION=500,
-                 SAVE_RESULTS=False
+                 SAVE_RESULTS=True
                  ):
         self.rr = rr
         self.paramRange = []
