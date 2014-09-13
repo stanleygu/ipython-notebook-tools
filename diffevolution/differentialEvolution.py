@@ -69,10 +69,13 @@ class DiffEvolution():
                     self.fitnessFcn(sim))
                 if self.SAVE_RESULTS:
                     firstGen['sim'].append(sim)
-            except RuntimeError:
-                firstGen['fitness'].append(float('inf'))
-                if self.SAVE_RESULTS:
-                    firstGen['sim'].append(None)
+            except Exception as ex:
+                if ex.message.find('CVODE') > -1:
+                    firstGen['fitness'].append(float('inf'))
+                    if self.SAVE_RESULTS:
+                        firstGen['sim'].append(None)
+                else:
+                    raise(ex)
 
     def seedPopulation(self, firstGen):
         import numpy as np
@@ -162,9 +165,12 @@ class DiffEvolution():
             try:
                 sim = np.copy(simResult.get()[-1])
                 trialFitness = self.fitnessFcn(sim)
-            except RuntimeError:
-                sim = None
-                trialFitness = float('inf')
+            except Exception as ex:
+                if ex.message.find('CVODE') > -1:
+                    sim = None
+                    trialFitness = float('inf')
+                else:
+                    raise(ex)
             member = self.generations[-1]['members'][i]
             memberFitness = self.generations[-1]['fitness'][i]
             memberSim = self.generations[-1]['sim'][i]
