@@ -122,7 +122,7 @@ def plot2DParameterScan(
     for i, k1 in enumerate(param1Range):
         for j, k2 in enumerate(param2Range):
             r.reset()
-            r.model[param1], r.model[param2] = k1, k2
+            r[param1], r[param2] = k1, k2
             result = r.simulate(start, end, steps)
             columns = result.shape[1]
             legendItems = r.selections[1:]
@@ -190,7 +190,7 @@ def makeParameterSliders(r,
         for k, v in paramMap.items():
             try:
                 key = k.encode('ascii', 'ignore')
-                r.model[key] = v
+                r[key] = v
             except:
                 # error in setting model variable
                 e = sys.exc_info()
@@ -205,9 +205,9 @@ def makeParameterSliders(r,
             print e
 
     for i, id in enumerate(paramIds):
-        val = r.model[id]
+        val = r[id]
         try:
-            r.model[id] = val
+            r[id] = val
             paramMap[id] = widgets.FloatSliderWidget(
                 min=minFactor*val,
                 max=maxFactor*val,
