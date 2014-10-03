@@ -1,4 +1,4 @@
-class BioModel:
+class Biomodel:
     def __init__(self, id):
         import urllib
         import libsbml
