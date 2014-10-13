@@ -32,39 +32,47 @@ def getChebiId(item):
     else:
         return None
         
-def matchSpeciesChebi(s1, s2):
+def matchSpeciesChebi(s1, s2, logging=False):
     ch1 = getChebiId(s1)
     ch2 = getChebiId(s2)
     
-    entry = ch.getCompleteEntity(ch1)
+    if logging:
+        print 'Comparing %s (%s) with %s (%s)' % (s1.getId(), ch1, s2.getId(), ch2)
     
-    exact = []
-    if ch1 == ch2:
-        exact.append({'id': ch2})
-    
-    children = []
-    if (hasattr(entry, 'OntologyChildren')):
-        for child in entry.OntologyChildren:
-            if child['chebiId'] == ch2:
-                children.append({
-                    'id': s2.getId(),
-                    'data': child
-                    })
-                
-    parents = []
-    if (hasattr(entry, 'OntologyParents')):
-        for parent in entry.OntologyParents:
-            if parent['chebiId'] == ch2:
-                parents.append({
-                    'id': s2.getId(),
-                    'data': parent
-                    })
-    
-    
-    return {
-        'id': s1.getId(),
-        'chebi_name': entry.chebiAsciiName,
-        'exact': exact,
-        'children': children,
-        'parents': parents
-    }
+    try:
+        entry = ch.getCompleteEntity(ch1)
+        
+        
+        exact = []
+        if ch1 == ch2:
+            exact.append({'id': s2.getId()})
+        
+        children = []
+        if (hasattr(entry, 'OntologyChildren')):
+            for child in entry.OntologyChildren:
+                if child['chebiId'] == ch2:
+                    children.append({
+                        'id': s2.getId(),
+                        'data': child
+                        })
+                    
+        parents = []
+        if (hasattr(entry, 'OntologyParents')):
+            for parent in entry.OntologyParents:
+                if parent['chebiId'] == ch2:
+                    parents.append({
+                        'id': s2.getId(),
+                        'data': parent
+                        })
+        
+        
+        return {
+            'id': s1.getId(),
+            'chebi_name': entry.chebiAsciiName,
+            'exact': exact,
+            'children': children,
+            'parents': parents
+        }
+    except:
+        import sys
+        print "Unexpected error:", sys.exc_info()[0]

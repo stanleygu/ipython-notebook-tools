@@ -1,6 +1,6 @@
 import _annotations
 
-def getMatchingSpecies(m1, m2):
+def getMatchingSpecies(m1, m2, logging=False):
     '''
     Returns a list of species with matching annotations URIs
     '''
@@ -11,8 +11,8 @@ def getMatchingSpecies(m1, m2):
     matches = []
     for s1 in m1.species:
         for s2 in m2.species:
-            match = _annotations.matchSpeciesChebi(s1, s2)
-            if len(match['exact']) or len(match['children']) or len(match['parents']):
+            match = _annotations.matchSpeciesChebi(s1, s2, logging=logging)
+            if match and len(match['exact']) or len(match['children']) or len(match['parents']):
                 matches.append(match)
     return matches
 
