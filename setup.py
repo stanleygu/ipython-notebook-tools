@@ -10,5 +10,5 @@ setup(name='notebooktools',
       author='Stanley Gu',
       author_email='stanleygu@gmail.com',
       url='https://github.com/stanleygu/ipython-notebook-modules',
-      packages=['notebooktools', 'diffevolution', 'biomodels']
+      packages=['notebooktools', 'diffevolution', 'biomodeltoolbox']
       )

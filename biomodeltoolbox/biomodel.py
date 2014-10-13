@@ -1,16 +1,21 @@
-class BioModel:
-    def __init__(self, id):
-        import urllib
+class Biomodel:
+    def __init__(self, sbml):
+        '''
+        Initialize with from either SBML string or SBML Document object
+        '''
         import libsbml
-        link = "http://www.ebi.ac.uk/biomodels-main/download?mid=" + id
-        f = urllib.urlopen(link)
-        sbmlString = f.read()
-        self.document = libsbml.readSBMLFromString(sbmlString)
-        if self.document.getNumErrors() > 0:
-            raise Exception('Did not find valid BioModel with ID of ' + id)
-        self.model = self.document.getModel()
-        self.submodels = []
+        if isinstance(sbml, libsbml.SBMLDocument):
+            self.document = sbml
+        elif isinstance(sbml, basestring):
+            self.document = libsbml.readSBMLFromString(sbml)
+        else:
+            raise Exception("Model is not a string or SBML document object")
         
+        
+        if self.document.getNumErrors() > 0:
+            raise Exception('SBML document contains erros')
+        self.model = self.document.getModel()
+
     def getComponents(self):
         import libsbml
         def getAllReactionParameters(r):
