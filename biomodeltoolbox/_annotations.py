@@ -36,6 +36,9 @@ def matchSpeciesChebi(s1, s2, logging=False):
     ch1 = getChebiId(s1)
     ch2 = getChebiId(s2)
     
+    if not ch1 and not ch2:
+        return None
+    
     if logging:
         print 'Comparing %s (%s) with %s (%s)' % (s1.getId(), ch1, s2.getId(), ch2)
     
@@ -76,3 +79,4 @@ def matchSpeciesChebi(s1, s2, logging=False):
     except:
         import sys
         print "Unexpected error:", sys.exc_info()[0]
+        return None
