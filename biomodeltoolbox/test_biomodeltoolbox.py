@@ -11,4 +11,4 @@ s = bioservices.BioModels()
 
 matches = bmt.getMatchingSpecies(nielsen.sbml.getModel(), chassagnole.sbml.getModel(), logging=True)
 
-print matches
+bmt.printMatchingSpecies(matches)
