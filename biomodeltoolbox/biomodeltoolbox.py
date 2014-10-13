@@ -17,6 +17,17 @@ def getMatchingSpecies(m1, m2, logging=False):
                     matches.append(match)
     return matches
 
+def printMatchingSpecies(matches):
+    '''Prints the matches from getMatchingSpecies
+    '''
+    for match in matches:
+        if len(match['exact']):
+            print '%s exactly matches %s' % (match['exact'][0]['id'], match['id'])
+        if len(match['parents']):
+            print '%s %s %s' % (match['parents'][0]['id'], match['parents'][0]['data']['type'], match['id'])
+        if len(match['children']):
+            print '%s %s %s' % (match['children'][0]['id'], match['children'][0]['data']['type'], match['id'])
+            
 def getMatchingReactions(modelOrList, idToMatch):
     '''
     Returns a list of reactions that contains a reactant with the id to match
