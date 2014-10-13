@@ -12,8 +12,9 @@ def getMatchingSpecies(m1, m2, logging=False):
     for s1 in m1.species:
         for s2 in m2.species:
             match = _annotations.matchSpeciesChebi(s1, s2, logging=logging)
-            if match and len(match['exact']) or len(match['children']) or len(match['parents']):
-                matches.append(match)
+            if match:
+                if len(match['exact']) or len(match['children']) or len(match['parents']):
+                    matches.append(match)
     return matches
 
 def getMatchingReactions(modelOrList, idToMatch):

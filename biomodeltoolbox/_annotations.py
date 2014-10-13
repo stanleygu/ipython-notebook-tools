@@ -36,7 +36,7 @@ def matchSpeciesChebi(s1, s2, logging=False):
     ch1 = getChebiId(s1)
     ch2 = getChebiId(s2)
     
-    if not ch1 and not ch2:
+    if not ch1 or not ch2:
         return None
     
     if logging:
