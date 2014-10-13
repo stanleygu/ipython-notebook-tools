@@ -9,6 +9,7 @@ class BioModel:
         if self.document.getNumErrors() > 0:
             raise Exception('Did not find valid BioModel with ID of ' + id)
         self.model = self.document.getModel()
+        self.submodels = []
         
     def getComponents(self):
         import libsbml
@@ -35,7 +36,7 @@ class BioModel:
         
         reactions = [r for r in self.model.reactions]
 
-        submodels = []
+        self.submodels = []
         for r in reactions:
             newDoc = libsbml.SBMLDocument(2, 4)
             newMod = newDoc.createModel()
@@ -56,9 +57,9 @@ class BioModel:
 
             newMod.addReaction(r.clone())
 
-            submodels.append(newDoc)
+            self.submodels.append(newDoc)
 
-        return submodels
+        return self.submodels
     
     def getSbml(self):
         '''
@@ -79,7 +80,7 @@ class BioModel:
         Returns list of SBML models generated from each model reaction
         '''
         import libsbml
-        return [libsbml.writeSBMLToString(doc) for doc in submodels]
+        return [libsbml.writeSBMLToString(doc) for doc in self.submodels]
     
     def getComponentAntimony(self):
         '''
@@ -87,7 +88,8 @@ class BioModel:
         
         '''
         import tellurium as te
-        return [te.sbmlToAntimony(sbml) for sbml in newSBML]
+        sbmls = self.getComponentSBML()
+        return [te.sbmlToAntimony(sbml) for sbml in sbmls]
     
     def getMatchingSpecies(self, speciesToMatch):
         '''
@@ -127,7 +129,6 @@ class BioModel:
         '''
         Returns a list of all resource URIs for the given element
         '''
-        import libsbml
         uris = []
         for i in range(item.getNumCVTerms()):
             term = item.getCVTerm(i)
