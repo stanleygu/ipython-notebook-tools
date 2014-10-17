@@ -1,4 +1,4 @@
-def show_network(sbml):
+def show_network(sbml, layout_type='spring_layout'):
     '''
     Create a network diagram from a sbml model.
     
@@ -43,10 +43,19 @@ def show_network(sbml):
     
     import matplotlib.pyplot as plt
     
+    try:
+        pos = getattr(nx, layout_type)(G)
+    except:
+        raise Exception('layout_type of %s is not valid' % layout_type)
+    # if layout == 'spring':
+    #     pos=nx.spring_layout(G)
+    # elif layout == 'spectral':
+    #     pos=nx.spectral_layout(G)
+    # elif layout ==  
     # pos=nx.circular_layout(G)
     # pos=nx.shell_layout(G)
-    # pos=nx.spring_layout(G)
-    pos=nx.spectral_layout(G)
+    # 
+   
     
     nx.draw_networkx_nodes(G,pos,
                            nodelist=species,
