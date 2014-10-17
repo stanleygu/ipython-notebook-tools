@@ -1,10 +1,10 @@
+import networkx as nx
+import libsbml
 class SBMLDiagram():
     '''
     Create a network diagram from a sbml model.
     
     '''
-    import networkx as nx
-    import libsbml
     
     def __init__(self, sbml):
         '''
