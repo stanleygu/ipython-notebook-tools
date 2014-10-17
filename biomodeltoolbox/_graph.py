@@ -1,75 +1,90 @@
-def show_network(sbml, layout_type='spring_layout'):
+def SBMLDiagram():
     '''
     Create a network diagram from a sbml model.
-    
-    sbml -- an SBML string, libsbml.SBMLDocument object, or libsbml.Model object
     
     '''
     import networkx as nx
     import libsbml
     
-    if isinstance(sbml, basestring):
-        doc = libsbml.readSBMLFromString(sbml)
-        model = doc.getModel()
-    elif isinstance(sbml, libsbml.SBMLDocument):
-        doc = sbml
-        model = doc.getModel()
-    elif isinstance(sbml, libsbml.Model):
-        model = sbml
-    else:
-        raise Exception('SBML Input is not valid')
+    def __init__(self, sbml):
+        '''
+        sbml -- an SBML string, libsbml.SBMLDocument object, or libsbml.Model object
     
-    G = nx.DiGraph()
-    labels = {}
-    species = []
-    reactions = []
-    for i, s in enumerate(model.species):
-        G.add_node(s.getId())
-        species.append(s.getId())
-    for i, r in enumerate(model.reactions):
-        G.add_node(r.getId())
-        reactions.append(r.getId())
-        for s in r.reactants:
-            G.add_edge(s.getSpecies(), r.getId(), kind='reactant')
-        for s in r.products:
-            G.add_edge(r.getId(), s.getSpecies(), kind='product')
-        for s in r.modifiers:
-            G.add_edge(s.getSpecies(), r.getId(), kind='modifier')
+        '''
+        
+        if isinstance(sbml, basestring):
+            self.doc = libsbml.readSBMLFromString(sbml)
+            self.model = self.doc.getModel()
+        elif isinstance(sbml, libsbml.SBMLDocument):
+            self.doc = sbml
+            self.model = self.doc.getModel()
+        elif isinstance(sbml, libsbml.Model):
+            self.model = sbml
+        else:
+            raise Exception('SBML Input is not valid')
     
-    modifier_edges = [key for key, val in nx.get_edge_attributes(G, 'kind').items() if val == 'modifier']
-    product_edges = [key for key, val in nx.get_edge_attributes(G, 'kind').items() if val == 'product']
-    reactant_edges = [key for key, val in nx.get_edge_attributes(G, 'kind').items() if val == 'reactant']
-    #mass_transfer_edges = [key for key, val in nx.get_edge_attributes(G, 'kind').items() if val != 'modifier']
+        self.G = nx.DiGraph()
+        self.labels = {}
+        self.species = []
+        self.reactions = []
+        for i, s in enumerate(self.model.species):
+            self.G.add_node(s.getId())
+            self.species.append(s.getId())
+        for i, r in enumerate(self.model.reactions):
+            self.G.add_node(r.getId())
+            self.reactions.append(r.getId())
+            for s in r.reactants:
+                self.G.add_edge(s.getSpecies(), r.getId(), kind='reactant')
+            for s in r.products:
+                self.G.add_edge(r.getId(), s.getSpecies(), kind='product')
+            for s in r.modifiers:
+                self.G.add_edge(s.getSpecies(), r.getId(), kind='modifier')
+        
+        self.modifier_edges = [key for key, val in nx.get_edge_attributes(self.G, 'kind').items() if val == 'modifier']
+        self.product_edges = [key for key, val in nx.get_edge_attributes(self.G, 'kind').items() if val == 'product']
+        self.reactant_edges = [key for key, val in nx.get_edge_attributes(self.G, 'kind').items() if val == 'reactant']
+        #mass_transfer_edges = [key for key, val in nx.get_edge_attributes(G, 'kind').items() if val != 'modifier']
+        
+        # Default drawing options
+        self.options = {}
+        self.options['species'] = {
+            'size': 500,
+            'color': 'r',
+            'alpha': 0.8,
+            'label_size': 16
+        }
+        self.options
+            
     
-    import matplotlib.pyplot as plt
+    def draw(self, layout_type='spring_layout'):
+        '''
+        Draw the graph
+        
+        layout_type = The type of layout algorithm (Default = 'spring_layout')
+        '''
     
-    try:
-        pos = getattr(nx, layout_type)(G)
-    except:
-        raise Exception('layout_type of %s is not valid' % layout_type)
-    # if layout == 'spring':
-    #     pos=nx.spring_layout(G)
-    # elif layout == 'spectral':
-    #     pos=nx.spectral_layout(G)
-    # elif layout ==  
-    # pos=nx.circular_layout(G)
-    # pos=nx.shell_layout(G)
-    # 
+        import matplotlib.pyplot as plt
+        
+        try:
+            pos = getattr(nx, layout_type)(self.G)
+        except:
+            raise Exception('layout_type of %s is not valid' % layout_type)
    
     
-    nx.draw_networkx_nodes(G,pos,
-                           nodelist=species,
-                           node_color='r',
-                           node_size=500,
-                           alpha=0.8)
-    nx.draw_networkx_edges(G, pos, edgelist=product_edges)
-    nx.draw_networkx_edges(G, pos, edgelist=reactant_edges, arrows=False)
-    nx.draw_networkx_edges(G, pos, edgelist=modifier_edges, style='dashed')
-    
-    labels = {}
-    for n in G.nodes():
-        if n in species:
-            labels[n] = n
-    nx.draw_networkx_labels(G,pos,labels,font_size=16)
-    plt.axis('off')
-    plt.show()
+        nx.draw_networkx_nodes(self.G,pos,
+                               nodelist=self.species,
+                               node_color=self.options['species']['color'],
+                               node_size=self.options['species']['size'],
+                               alpha=self.options['species']['alpha'])
+        nx.draw_networkx_edges(self.G, pos, edgelist=self.product_edges)
+        nx.draw_networkx_edges(self.G, pos, edgelist=self.reactant_edges, arrows=False)
+        nx.draw_networkx_edges(self.G, pos, edgelist=self.modifier_edges, style='dashed')
+        
+        labels = {}
+        for n in self.G.nodes():
+            if n in self.species:
+                labels[n] = n
+        nx.draw_networkx_labels(self.G,pos,labels,font_size=self.options['species']['label_size'])
+        plt.axis('off')
+        plt.show()
+        plt.axis('off')
