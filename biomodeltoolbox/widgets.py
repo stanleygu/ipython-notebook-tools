@@ -1,0 +1,2 @@
+from _widget_search import SearchBySpeciesForm
+from _widget_slider import ParameterSlider
