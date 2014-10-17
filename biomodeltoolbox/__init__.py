@@ -1,3 +1,3 @@
-from biomodel import *
+from biomodel import BioModel
 from biomodeltoolbox import *
 import widgets
