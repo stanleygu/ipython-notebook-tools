@@ -1,4 +1,4 @@
-def SBMLDiagram():
+class SBMLDiagram():
     '''
     Create a network diagram from a sbml model.
     
