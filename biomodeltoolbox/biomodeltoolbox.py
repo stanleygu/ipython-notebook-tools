@@ -1,4 +1,5 @@
 import _annotations
+from _graph import show_network
 
 def getMatchingSpecies(m1, m2, logging=False):
     '''
