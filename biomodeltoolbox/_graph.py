@@ -87,4 +87,3 @@ class SBMLDiagram():
         nx.draw_networkx_labels(self.G,pos,labels,font_size=self.options['species']['label_size'])
         plt.axis('off')
         plt.show()
-        plt.axis('off')

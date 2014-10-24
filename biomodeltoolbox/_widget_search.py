@@ -11,7 +11,13 @@ class SearchBySpeciesForm():
             'searchButton': w.ButtonWidget(description='Search'),
             'selectChebis': w.SelectWidget(description='Matching ChEBI:'),
             'selectModels': w.SelectWidget(description='Matching BioModels:'),
-            'selectedModel': w.TextareaWidget(description='Model SBML:')
+            'selectedModel': w.ContainerWidget(children=[
+                w.TextWidget(description='Model ID:'),
+                w.TextWidget(description='Install Code:'),
+                w.TextWidget(description='Import module code:'),
+                w.TextareaWidget(description='Model SBML:')
+                
+            ])
         }
         self.container = w.ContainerWidget(children=[
             self.widgets['searchTerm'],
@@ -67,5 +73,8 @@ class SearchBySpeciesForm():
         if trait == 'value':
             modelId = self.widgets['selectModels'].value
             sbml = s.getModelById(modelId)
-            self.widgets['selectedModel'].value = sbml
+            self.widgets['selectedModel'].children[0].value = modelId
+            self.widgets['selectedModel'].children[1].value = 'pip install git+https://github.com/biomodels/%s.git' % modelId
+            self.widgets['selectedModel'].children[2].value = 'import %s' % modelId
+            self.widgets['selectedModel'].children[3].value = sbml
             self.widgets['selectedModel'].visible = True

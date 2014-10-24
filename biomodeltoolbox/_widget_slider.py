@@ -1,6 +1,5 @@
 from IPython.html.widgets import interact
 from IPython.html import widgets
-import tellurium as te
 import sys
 
 
