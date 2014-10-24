@@ -72,6 +72,7 @@ class SearchBySpeciesForm():
     
     def selectedModel(self, trait):
         if trait == 'value':
+            self.widgets['selectedModel'].visible = False
             modelId = self.widgets['selectModels'].value
             sbml = s.getModelById(modelId)
             self.widgets['selectedModel'].children[0].value = modelId
