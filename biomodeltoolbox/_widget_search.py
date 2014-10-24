@@ -60,6 +60,7 @@ class SearchBySpeciesForm():
     def selectChebi(self, trait):
         if trait == 'value':
             self.widgets['selectModels'].visible = False
+            self.widgets['selectedModel'].visible = False
             chebi = self.widgets['selectChebis'].value
             modelIds = s.getModelsIdByChEBIId(chebi)
             values = {}
