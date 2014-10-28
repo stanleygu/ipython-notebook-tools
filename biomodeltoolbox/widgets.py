@@ -1,2 +1,3 @@
 from _widget_search import SearchBySpeciesForm
 from _widget_slider import ParameterSlider
+from _widget_annotation_search import OntologySearch

@@ -1,13 +1,13 @@
 import bioservices
-s = bioservices.BioModels();
-ch = bioservices.ChEBI()
 import IPython.html.widgets as w
 from IPython.display import display, clear_output
 
 class SearchBySpeciesForm():
     def __init__(self):
+        self.s = bioservices.BioModels()
+        self.ch = bioservices.ChEBI()
         self.widgets = {
-            'searchTerm': w.TextWidget(),
+            'searchTerm': w.TextWidget(description='Search biomodels by species:'),
             'searchButton': w.ButtonWidget(description='Search'),
             'selectChebis': w.SelectWidget(description='Matching ChEBI:'),
             'selectModels': w.SelectWidget(description='Matching BioModels:'),
@@ -45,7 +45,7 @@ class SearchBySpeciesForm():
     
     def search(self, b):
         self.init_display()
-        results = ch.getLiteEntity(self.widgets['searchTerm'].value)
+        results = self.ch.getLiteEntity(self.widgets['searchTerm'].value)
         choices = [result['chebiId'] for result in results]
         choiceText = ['%s (%s)' % (result['chebiId'], result['chebiAsciiName']) for result in results]
         
@@ -62,7 +62,7 @@ class SearchBySpeciesForm():
             self.widgets['selectModels'].visible = False
             self.widgets['selectedModel'].visible = False
             chebi = self.widgets['selectChebis'].value
-            modelIds = s.getModelsIdByChEBIId(chebi)
+            modelIds = self.s.getModelsIdByChEBIId(chebi)
             values = {}
             if modelIds is not None:
                 for id in modelIds:
@@ -74,7 +74,7 @@ class SearchBySpeciesForm():
         if trait == 'value':
             self.widgets['selectedModel'].visible = False
             modelId = self.widgets['selectModels'].value
-            sbml = s.getModelById(modelId)
+            sbml = self.s.getModelById(modelId)
             self.widgets['selectedModel'].children[0].value = modelId
             self.widgets['selectedModel'].children[1].value = 'pip install git+https://github.com/biomodels/%s.git' % modelId
             self.widgets['selectedModel'].children[2].value = 'import %s' % modelId
