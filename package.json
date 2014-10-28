@@ -1,0 +1,19 @@
+{
+  "name": "notebooktools",
+  "version": "0.2.0",
+  "description": "Tools for IPython Notebook used with Tellurium",
+  "main": "setup.py",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/stanleygu/ipython-notebook-tools.git"
+  },
+  "author": "Stanley Gu",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/stanleygu/ipython-notebook-tools/issues"
+  },
+  "homepage": "https://github.com/stanleygu/ipython-notebook-tools"
+}
